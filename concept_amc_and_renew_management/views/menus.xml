@@ -1,0 +1,10 @@
+<odoo> 
+  
+    <menuitem id="menu_amc_dashboard" name="AMC Management" action="action_amc_dashboard" sequence="10"/>
+
+    <!-- Submenu under AMC Dashboard -->
+    <menuitem id="submenu_amc_types" name="AMC Types" parent="menu_amc_dashboard" action="action_amc_types"/>
+
+    <menuitem id="menu_renew_sub_category_model" name="Category" parent="menu_amc_dashboard" action="action_renew_customer_type_model"/>
+
+</odoo>

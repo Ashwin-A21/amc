@@ -1,0 +1,357 @@
+<odoo> 
+    <!-- //////////////////////// Main Dashboard ////////////////////////////////// -->
+    <record id="seq_amc_reference_no" model="ir.sequence">
+        <field name="name">AMC Reference Number</field>
+        <field name="code">amc.model.reference.no</field>
+        <field name="prefix">AMC/</field>
+        <field name="padding">5</field>
+        <field name="company_id" eval="False"/>
+    </record>
+
+    <record id="view_amc_dashboard_search" model="ir.ui.view">
+        <field name="name">amc.model.search</field>
+        <field name="model">amc.model</field>
+        <field name="arch" type="xml">
+            <search>
+               
+                <!-- Filters -->
+                <filter name="status_pending" string="Pending" domain="[('status', '=', 'pending')]"/>
+                <filter name="status_due" string="Due" domain="[('status', '=', 'due')]"/>
+                <filter name="status_over_due" string="Over Due" domain="[('status', '=', 'over_due')]"/>
+                <filter name="status_critical" string="Critical" domain="[('status', '=', 'critical')]"/>
+                <filter name="cancelled" string="Cancelled" domain="[('status', '=', 'cancelled')]"/>
+                <filter name="renewal_type" string="Renewal Type" domain="[('renew_type', '!=', False)]"/>
+                <!-- Group By -->
+                <group expand="0" string="Group By"> 
+                    <filter name="group_by_responsible_person" string="Responsible Person" context="{'group_by': 'responsible_person'}"/>
+                    <filter name="group_by_customer" string="Customer" context="{'group_by': 'customer'}"/>
+                    <filter name="group_by_category" string="Category" context="{'group_by': 'category'}"/>
+                    <filter name="group_by_renew_type" string="Expiry Type" context="{'group_by': 'renew_type'}"/> 
+                    <filter name="group_by_status" string="Status" context="{'group_by': 'status'}"/>
+                    <filter name="group_by_due_date" string="Due Date" context="{'group_by': 'due_on'}"/>
+                </group>        
+                <!-- Favorites -->
+                <field name="customer"/>
+                <field name="title"/>
+                <field name="reference_no"/>
+                <field name="responsible_person"/>
+
+                 <searchpanel>
+                    <field name="category" string="Types"/>
+                    <field name="customertype"   string="Categories"/>
+                </searchpanel>
+            </search>
+
+
+        </field>
+    </record>
+
+
+    <record id="action_amc_dashboard" model="ir.actions.act_window">
+        <field name="name">Customer AMC &amp; Renewals</field>
+        <field name="res_model">amc.model</field>
+        <field name="view_mode">tree,form,calendar,kanban,pivot,graph</field>
+        <field name="search_view_id" ref="view_amc_dashboard_search"/>
+        <field name="context">
+            {
+            'default_responsible_person': uid,
+            'search_default_status_due': 1,
+            'search_default_status_over_due': 1,
+            'search_default_status_critical': 1
+            'search_default_responsible_person': uid
+            }
+        </field>
+    </record>
+
+    <record id="view_amc_dashboard_tree" model="ir.ui.view">
+        <field name="name">amc.model.tree</field>
+        <field name="model">amc.model</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="title"/>
+                <field name="status" decoration-muted="status == 'cancelled'" decoration-info="status == 'pending'" decoration-primary="status == 'due'" decoration-danger="status == 'over_due'" decoration-warning="status == 'critical'" widget="badge"/>
+                <field name="customer"/>
+                <field name="category" />
+                <field name="customertype" />
+                <field name="responsible_person"/>
+                <field name="reference_no"/>
+                <field name="due_on"/>  
+                <field name="renew_type"/>    
+            </tree>
+        </field>
+    </record> 
+    <record id="view_amc_calendar" model="ir.ui.view">
+        <field name="name">amc.model.calendar</field>
+        <field name="model">amc.model</field>
+        <field name="arch" type="xml">
+            <calendar date_start="due_on" color="status">
+                <field name="customer"/>
+                <field name="renew_type"/>
+            </calendar>
+        </field>
+    </record>
+
+    <record id="view_amc_dashboard_form" model="ir.ui.view">
+        <field name="name">amc.model.form</field>
+        <field name="model">amc.model</field>
+        <field name="arch" type="xml">
+            <form string="AMC Dashboard">
+                <header>
+                    <div style="margin-right:20px;">Status: <field name="status" readonly="1"/></div>
+                    <button name="action_cancel" string="Cancel" type="object" class="btn-danger" position="end"/> 
+                    <button name="action_restore" string="Restore" type="object" class="btn-primary" position="end"/> 
+                </header>
+                <sheet>
+                    <group>
+                        <group col="2">  
+                            <!-- <field name="name" /> -->
+                            <field name="customer" />
+                            <field name="category" /> 
+                            <field name="customertype"/>
+                            <field name="title"/> 
+                            <field name="responsible_person"/>
+                            <field name="is_visitable"/>
+
+                        </group>
+                        <group col="2"> 
+                            <field name="due_on"  />
+                            <field name="company_id"/>
+                            <field name="renew_type" /> 
+                            <field name="alert_before" />
+                            <field name="description" /> 
+                        </group>
+
+                    </group>
+                    <!-- Conditional fields -->
+                    <group invisible="not is_visitable">
+                        <group col="2">
+                            <field name="alert_days"/>
+                            <field name="frequency"/>
+                        </group>
+                    </group>
+                    <notebook>
+                        <page string="AMC Details">
+                            <group col ="1">
+                                <!-- <field name="amc_line_ids" widget="section_and_note_one2many"> -->
+                                <field name="amc_line_ids"
+       widget="section_and_note_one2many"
+       nolabel="2"
+       string="">
+
+                                    <tree editable="bottom">
+                                        <control>
+                                        <create string="Add a line"/>
+                                        <create string="Add a section" context="{'default_display_type': 'line_section'}"/>
+                                        <create string="Add a note" context="{'default_display_type': 'line_note'}"/>
+                                        </control>
+
+                                        <field name="display_type" column_invisible="1"/>
+                                        <field name="product_id"
+                                            attrs="{'required': [('display_type','=', False)],
+                                                    'readonly': [('display_type','!=', False)]}"/>
+                                        <field name="name" string="Description"
+                                            attrs="{
+                                                'invisible': [('display_type','=', False)],
+                                                'required': [('display_type','!=', False)],
+                                                'readonly': [('display_type','=', False)]
+                                            }"/>            
+                                        <field name="quantity" attrs="{'readonly': [('display_type','!=', False)]}"/>
+                                        <field name="price" attrs="{'readonly': [('display_type','!=', False)]}"/>
+                                        <field name="tax_id" string="Taxes" attrs="{'readonly': [('display_type','!=', False)]}"/>
+                                        <field name="subtotal" attrs="{'invisible': [('display_type','!=', False)]}"/>
+                                        <field name="tax_amount" attrs="{'invisible': [('display_type','!=', False)]}"/>
+                                        <field name="grand_total" attrs="{'invisible': [('display_type','!=', False)]}"/>
+                                    </tree>
+                                </field>
+                            </group>
+                        </page>
+                        <page string="Quotations Created">
+                            <field name="sale_order_ids" mode="tree" context="{'create': False}" nolabel="1">
+                                <tree limit="0">
+                                    <button name="action_open_sale_order" 
+                                            string="Open" 
+                                            type="object" 
+                                            class="oe_highlight"
+                                            icon="fa-external-link"/>
+                                    <field name="name"/>
+                                    <field name="state"/>
+                                    <field name="user_id"/>
+                                    <field name="date_order"/>
+                                    <field name="amount_total"/>
+                                </tree>
+                            </field>
+                        </page>
+                        <page string="Invoices Created">
+                            <field name="invoice_ids" mode="tree" context="{'create': False}" nolabel="1">
+                                <tree limit="0" >
+                                    <button name="action_open_invoice"
+                                            string="Open"
+                                            type="object"
+                                            class="oe_highlight"
+                                            icon="fa-external-link"/>
+                                    <field name="name"/>
+                                    <field name="partner_id"/>
+                                    <field name="invoice_date"/>
+                                    <field name="amount_total"/>
+                                    <field name="state" decoration-success="state == 'posted'" decoration-warning="state == 'draft'"/>
+                                </tree>
+                            </field>
+                        </page>
+                    </notebook>    
+                </sheet>
+
+                <div class="oe_chatter">
+                    <field name="message_follower_ids" groups="base.group_user"/>
+                    <field name="activity_ids"/>
+                    <field name="message_ids"/>
+                </div>
+
+            </form>
+        </field>
+    </record>
+
+    <record id="action_sale_order_full_page" model="ir.actions.act_window">
+            <field name="name">Sales Order</field>
+            <field name="res_model">sale.order</field>
+            <field name="view_mode">tree,form</field>
+            <field name="target">current</field> <field name="help" type="html">
+                <p class="o_view_nocontent_smiling_face">
+                    Create a new sales order
+                </p><p>
+                    Your sales orders define the commercial agreement with your customers.
+                </p>
+            </field>
+        </record>
+
+        <record id="sale_order_menu_action_full_page" model="ir.ui.menu">
+            <field name="name">Quotations</field>
+            <field name="sequence">10</field>
+            <field name="action" ref="action_sale_order_full_page"/>
+            <field name="parent_id" ref="sale.menu_sale_quotations"/> </record>
+
+     <!-- view modes -->
+     <record id="view_renew_kanban" model="ir.ui.view">
+            <field name="name">amc.model.kanban</field>
+            <field name="model">amc.model</field>
+            <field name="arch" type="xml">
+                <kanban>
+                    <field name="title"/>
+                    <field name="customer"/>
+                    <field name="due_on"/>
+                    <field name="status" decoration-muted="status == 'pending'" decoration-info="status == 'due'" decoration-danger="status == 'over_due'" decoration-warning="status == 'critical'" widget="badge"/>
+                    <field name="renew_type"/> 
+                    <templates>
+                        <t t-name="kanban-box">
+                            <div t-attf-class="oe_kanban_global_click">
+                                <div class="row">
+                                    <div class="col-6">
+                                        <strong><field name="title"/></strong>
+                                    </div>
+                                    <div class="col-6 text-end">
+                                        <span class="badge rounded-pill text-white" style="background-color: #008818;"><t t-esc="record.due_on.value"/></span>
+                                    </div>
+                                </div>
+                                <div>
+                                    <strong>Type: </strong><t t-esc="record.renew_type.value"/>
+                                </div>
+                            </div>
+                        </t>
+                    </templates>
+                </kanban>
+            </field>
+        </record>
+
+        <record id="renew_calendar" model="ir.ui.view">
+            <field name="name">amc.model.calendar</field>
+            <field name="model">amc.model</field>
+            <field name="arch" type="xml">
+                <calendar >
+                    <field name="title"/>
+                    <field name="due_on"/>
+                </calendar>
+            </field>
+        </record>
+
+          
+
+        <!-- view modes -->
+
+
+
+    <!-- //////////////////////// AMC Types ////////////////////////////////// -->
+    <record id="action_amc_types" model="ir.actions.act_window">
+        <field name="name">AMC Types</field>
+        <field name="res_model">amc.types.model</field>
+        <field name="view_mode">tree,form</field>
+        <field name="context">{}</field>
+    </record>
+
+    <record id="view_amc_types_tree" model="ir.ui.view">
+        <field name="name">amc.types.model.tree</field>
+        <field name="model">amc.types.model</field>
+        <field name="arch" type="xml">
+            <tree>
+                <field name="name"/> 
+                <field name="category"/> 
+            </tree>
+        </field>
+    </record> 
+
+    <record id="view_amc_types_form" model="ir.ui.view">
+        <field name="name">amc.types.model.form</field>
+        <field name="model">amc.types.model</field>
+        <field name="arch" type="xml">
+            <form string="AMC Types">
+                <sheet>
+                    <group>
+                        <field name="name"/> 
+                        <field name="category"/> 
+                    </group>
+                </sheet>
+            </form>
+        </field>
+    </record>
+
+
+
+    <!-- document renews sub category form start -->
+    <record id="action_renew_customer_type_model_form" model="ir.ui.view">
+        <field name="name">Add Category</field>
+        <field name="model">renew.customertype.model</field>
+        <field name="arch" type="xml">
+            <form>
+                <sheet>
+                    <group> 
+                        <field name="name"/>  
+
+                    </group>
+                </sheet>
+            </form>
+
+
+        </field>
+    </record>
+
+    <record id="action_renew_customer_type_model_tree" model="ir.ui.view">
+        <field name="name">View Category Type</field>
+        <field name="model">renew.customertype.model</field>
+        <field name="arch" type="xml">
+            <tree>
+              <field name="name"/>  
+            </tree>
+
+
+        </field>
+    </record>
+    <!-- document renews sub category form end -->
+
+     <!-- document renews sub category action window start -->
+    <record id="action_renew_customer_type_model" model="ir.actions.act_window">
+        <field name="name">Category</field>
+        <field name="res_model">renew.customertype.model</field>
+        <field name="view_mode">tree,form</field>
+    </record>
+    <!-- document renews sub category action window end -->
+
+
+</odoo>
