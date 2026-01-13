@@ -1,6 +1,6 @@
 {
     'name': 'AMC & Renewal Management',
-    'version': '1.0.0',
+    'version': '17.0.1.0.0',
     'category': 'AMC & Renewal Management',
     'summary': 'Manage Annual Maintenance Contracts (AMC) and Renewals',
     'author': 'Concept Solutions LLC',
@@ -26,10 +26,14 @@
     ],
     'assets': {
         'web.assets_backend': [
-            'concept_amc_and_renew_management/static/src/css/amc_hide_label.css',
+            'csl_amc_and_renew_management/static/src/css/amc_hide_label.css',
         ],
     },
     'assets': {},
     'installable': True, 
     'auto_install': False,
+    'license': 'OPL-1',
+    'price': 101.00,
+    'currency': 'USD',
+    
 }
